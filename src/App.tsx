@@ -142,21 +142,21 @@ export default function App() {
   }, [theme]);
 
   // Handle Direct APK Download & Instant State Update
+  const APK_DOWNLOAD_URL = "https://github.com/gabimarulevide13-ctrl/gardepharma-ci/releases/download/v1.0.0/GardePharmaCI.apk";
+
   const triggerApkDownload = () => {
     const alreadyDownloaded = localStorage.getItem("gardepharma_already_downloaded") === "true";
 
     if (!alreadyDownloaded) {
-      // Increment download count and save to localStorage
       const newCount = downloadCount + 1;
       setDownloadCount(newCount);
       localStorage.setItem("gardepharma_download_count", newCount.toString());
       localStorage.setItem("gardepharma_already_downloaded", "true");
     }
 
-    // Programmatically trigger native file download of GardePharmaCI.apk
     try {
       const link = document.createElement("a");
-      link.href = "./GardePharmaCI.apk";
+      link.href = APK_DOWNLOAD_URL;
       link.download = "GardePharmaCI.apk";
       document.body.appendChild(link);
       link.click();
