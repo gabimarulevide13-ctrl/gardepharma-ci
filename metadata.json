@@ -1,0 +1,6 @@
+{
+  "name": "GardePharma CI",
+  "description": "Site vitrine officiel pour GardePharma CI, l'application mobile de localisation en temps réel des pharmacies de garde en Côte d'Ivoire. Téléchargement direct de l'APK sécurisé.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
