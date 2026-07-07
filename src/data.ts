@@ -4,7 +4,7 @@
 export const APPLICATION_INFO = {
   name: "GardePharma CI",
   tagline: "Votre santé, notre priorité ! 💚",
-  description: "GardePharma CI est une application mobile gratuite conçue pour les Ivoiriens qui ont besoin de trouver rapidement une pharmacie de garde, même la nuit ou les jours fériés.",
+  description: "GardePharma CI est une application mobile gratuite conçue pour les Ivoiriens qui ont besoin de trouver rapidement une pharmacie de garde, même la nuit ou les jours fériés. Nous avons plus de 200 pharmacies de garde en Côte d'Ivoire et les prix publics de plus de 5 200 médicaments. Nous continuons à enrichir notre base de données chaque jour pour vous offrir une expérience agréable. Veuillez télécharger l'application pour bénéficier de tout ça.",
   
   features: [
     {
@@ -94,6 +94,14 @@ export const APPLICATION_INFO = {
     {
       title: "24h/24",
       description: "Pharmacies disponibles jour et nuit"
+    },
+    {
+      title: "≈ 200 pharmacies/jour",
+      description: "Près de 200 pharmacies de garde chaque jour sur tout le territoire"
+    },
+    {
+      title: "5 200+ médicaments",
+      description: "Accédez aux prix publics de plus de 5 200 médicaments"
     },
     {
       title: "Recherche rapide",

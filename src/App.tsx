@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Activity,
@@ -34,6 +34,32 @@ import {
 } from "./data";
 import Logo from "./Logo";
 
+type Medicine = {
+  name: string;
+  pricePublic: number;
+  priceMugefci: number;
+  cmuCovered: boolean;
+};
+
+type CartItem = { medicine: Medicine; quantity: number };
+
+type Prescription = {
+  id: string;
+  date: string;
+  items: CartItem[];
+  total: number;
+  insurance: string;
+};
+
+const MOCK_MEDICINES: Medicine[] = [
+  { name: "Paracétamol 500mg", pricePublic: 1200, priceMugefci: 360, cmuCovered: true },
+  { name: "Amoxicilline 500g", pricePublic: 2800, priceMugefci: 840, cmuCovered: true },
+  { name: "Ibuprofène 400mg", pricePublic: 1500, priceMugefci: 450, cmuCovered: false },
+  { name: "Spasfon Lyoc", pricePublic: 3100, priceMugefci: 930, cmuCovered: true },
+  { name: "Vogalène 10mg", pricePublic: 2400, priceMugefci: 720, cmuCovered: false },
+  { name: "Doliprane 1g", pricePublic: 1400, priceMugefci: 420, cmuCovered: true }
+];
+
 export default function App() {
   // Mobile navigation menu state
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -67,30 +93,20 @@ export default function App() {
   const [selectedCommune, setSelectedCommune] = useState("Toutes");
   const [selectedFeatureTab, setSelectedFeatureTab] = useState<string>("pharmacies");
 
-  // Mock list of medicines for the dictionary & price & cart interactive demo
-  const mockMedicines = [
-    { name: "Paracétamol 500mg", pricePublic: 1200, priceMugefci: 360, cmuCovered: true },
-    { name: "Amoxicilline 500g", pricePublic: 2800, priceMugefci: 840, cmuCovered: true },
-    { name: "Ibuprofène 400mg", pricePublic: 1500, priceMugefci: 450, cmuCovered: false },
-    { name: "Spasfon Lyoc", pricePublic: 3100, priceMugefci: 930, cmuCovered: true },
-    { name: "Vogalène 10mg", pricePublic: 2400, priceMugefci: 720, cmuCovered: false },
-    { name: "Doliprane 1g", pricePublic: 1400, priceMugefci: 420, cmuCovered: true }
-  ];
-
   // Cart / Panier states
-  const [cart, setCart] = useState<{ medicine: typeof mockMedicines[0]; quantity: number }[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [useInsurance, setUseInsurance] = useState<"none" | "mugefci" | "cmu">("none");
 
   // Saved Prescriptions / Bibliothèque d'ordonnances
-  const [savedPrescriptions, setSavedPrescriptions] = useState<{ id: string; date: string; items: typeof cart; total: number; insurance: string }[]>([
+  const [savedPrescriptions, setSavedPrescriptions] = useState<Prescription[]>([
     {
       id: "ORD-9842",
       date: "02/07/2026 à 11:30",
       insurance: "CMU",
       total: 1200,
       items: [
-        { medicine: mockMedicines[0], quantity: 2 },
-        { medicine: mockMedicines[5], quantity: 1 }
+        { medicine: MOCK_MEDICINES[0], quantity: 2 },
+        { medicine: MOCK_MEDICINES[5], quantity: 1 }
       ]
     }
   ]);
@@ -108,10 +124,10 @@ export default function App() {
     }
   }, []);
 
-  const savePrescriptionsToLocalStorage = (newPrescriptions: typeof savedPrescriptions) => {
+  const savePrescriptionsToLocalStorage = useCallback((newPrescriptions: Prescription[]) => {
     setSavedPrescriptions(newPrescriptions);
     localStorage.setItem("gardepharma_prescriptions", JSON.stringify(newPrescriptions));
-  };
+  }, []);
 
   // Theme application logic
   useEffect(() => {
@@ -200,31 +216,31 @@ export default function App() {
   };
 
   // Cart operations
-  const addToCart = (med: typeof mockMedicines[0]) => {
-    const existing = cart.find(item => item.medicine.name === med.name);
-    if (existing) {
-      setCart(cart.map(item => item.medicine.name === med.name ? { ...item, quantity: item.quantity + 1 } : item));
-    } else {
-      setCart([...cart, { medicine: med, quantity: 1 }]);
-    }
-  };
+  const addToCart = useCallback((med: Medicine) => {
+    setCart(prevCart => {
+      const existing = prevCart.find(item => item.medicine.name === med.name);
+      if (existing) {
+        return prevCart.map(item => item.medicine.name === med.name ? { ...item, quantity: item.quantity + 1 } : item);
+      }
+      return [...prevCart, { medicine: med, quantity: 1 }];
+    });
+  }, []);
 
-  const removeFromCart = (medName: string) => {
-    setCart(cart.filter(item => item.medicine.name !== medName));
-  };
+  const removeFromCart = useCallback((medName: string) => {
+    setCart(prevCart => prevCart.filter(item => item.medicine.name !== medName));
+  }, []);
 
-  // Calculate cart total
-  const calculateCartTotal = () => {
+  const cartTotal = useMemo(() => {
     return cart.reduce((total, item) => {
       let price = item.medicine.pricePublic;
       if (useInsurance === "mugefci") {
         price = item.medicine.priceMugefci;
       } else if (useInsurance === "cmu") {
-        price = item.medicine.cmuCovered ? item.medicine.pricePublic * 0.3 : item.medicine.pricePublic; // 70% coverage standard
+        price = item.medicine.cmuCovered ? item.medicine.pricePublic * 0.3 : item.medicine.pricePublic;
       }
       return total + (price * item.quantity);
     }, 0);
-  };
+  }, [cart, useInsurance]);
 
   // Validate cart to Prescription Library
   const validateCart = () => {
@@ -235,7 +251,7 @@ export default function App() {
       id: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
       date: formattedDate,
       items: [...cart],
-      total: calculateCartTotal(),
+      total: cartTotal,
       insurance: useInsurance === "none" ? "Aucune" : useInsurance === "mugefci" ? "MUGEFCI" : "CMU"
     };
     
@@ -267,9 +283,11 @@ export default function App() {
   };
 
   // Filter medicines based on search in dictionnaire demo
-  const filteredMedicines = mockMedicines.filter(m => 
-    m.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMedicines = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) return MOCK_MEDICINES;
+    return MOCK_MEDICINES.filter(m => m.name.toLowerCase().includes(normalizedQuery));
+  }, [searchQuery]);
 
   return (
     <div className="min-h-screen flex flex-col font-sans transition-colors duration-200 bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
@@ -586,21 +604,6 @@ export default function App() {
         </div>
       </section>
 
-      {/* CORE INFO SECTION */}
-      <section className="py-16 bg-white dark:bg-slate-900 border-y border-slate-200/80 dark:border-slate-800/80">
-        <div className="max-w-4xl mx-auto px-4 text-center">
-          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-100 dark:border-emerald-900/30">
-            Ce que fait l'application
-          </span>
-          <h2 className="font-display text-3xl font-extrabold text-slate-900 dark:text-white mt-4 tracking-tight">
-            Un compagnon de santé pour tous les Ivoiriens
-          </h2>
-          <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 mt-6 leading-relaxed">
-            "{APPLICATION_INFO.description}"
-          </p>
-        </div>
-      </section>
-
       {/* DYNAMIC AND INTERACTIVE FEATURE SHOWCASE */}
       <section id="fonctionnalites" className="py-20 bg-slate-50 dark:bg-slate-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -836,7 +839,7 @@ export default function App() {
                           <div className="border-t border-slate-100 dark:border-slate-800 pt-2 flex items-center justify-between">
                             <div>
                               <span className="text-[9px] text-slate-400 uppercase">Total calculé ({useInsurance === "none" ? "Standard" : useInsurance})</span>
-                              <p className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">{calculateCartTotal()} FCFA</p>
+                              <p className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">{cartTotal} FCFA</p>
                             </div>
                             <button
                               onClick={validateCart}
@@ -1028,7 +1031,7 @@ export default function App() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 text-center">
             {APPLICATION_INFO.whyChooseUs.map((item, idx) => (
               <div key={idx} className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
                 <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-display font-extrabold text-base mx-auto mb-4">
