@@ -457,7 +457,7 @@ export default function App() {
               </div>
 
               <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none mb-6">
-                Votre santé, notre priorité ! <span className="text-emerald-500">GardePharma CI</span>
+                <span className="text-emerald-500">GardePharma CI</span> — Pharmacies de garde en Côte d'Ivoire
               </h1>
 
               <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl mx-auto lg:mx-0 mb-8">
