@@ -81,6 +81,9 @@ export default function App() {
     return 0; // Commencer à 0 pour ne pas inventer de données
   });
 
+  // Latest release info fetched from GitHub (version number + changelog)
+  const [releaseInfo, setReleaseInfo] = useState<{ version: string; notes: string } | null>(null);
+
   // Theme state: "light" | "dark" | "system"
   const [theme, setTheme] = useState<"light" | "dark" | "system">("light");
 
@@ -127,6 +130,23 @@ export default function App() {
   const savePrescriptionsToLocalStorage = useCallback((newPrescriptions: Prescription[]) => {
     setSavedPrescriptions(newPrescriptions);
     localStorage.setItem("gardepharma_prescriptions", JSON.stringify(newPrescriptions));
+  }, []);
+
+  // Fetch the latest release version + changelog from GitHub on page load
+  useEffect(() => {
+    fetch("https://api.github.com/repos/gabimarulevide13-ctrl/gardepharma-ci/releases/latest")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.tag_name) {
+          setReleaseInfo({
+            version: data.tag_name.replace(/^v/, ""),
+            notes: data.body || ""
+          });
+        }
+      })
+      .catch(() => {
+        // Echec silencieux : le site fonctionne normalement même sans cette info
+      });
   }, []);
 
   // Theme application logic
@@ -1064,9 +1084,26 @@ export default function App() {
             <span>{downloadCount.toLocaleString("fr-FR")} téléchargements enregistrés</span>
           </div>
 
+          {releaseInfo && (
+            <div className="mt-3 inline-flex items-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-xl text-[11px] font-bold ml-2">
+              Version {releaseInfo.version}
+            </div>
+          )}
+
           <p className="text-sm text-slate-600 dark:text-slate-400 mt-3 max-w-lg mx-auto">
             Téléchargez le paquet d'installation APK direct. Notre package est analysé par Google Play Protect et 100% sans virus ni publicité invasive.
           </p>
+
+          {releaseInfo && releaseInfo.notes && (
+            <div className="mt-4 max-w-md mx-auto bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-4 text-left">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                Nouveautés de cette version
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 whitespace-pre-line">
+                {releaseInfo.notes}
+              </p>
+            </div>
+          )}
 
           <div className="mt-8 max-w-md mx-auto bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-inner">
             
