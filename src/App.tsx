@@ -158,7 +158,7 @@ export default function App() {
   }, [theme]);
 
   // Handle Direct APK Download & Instant State Update
-  const APK_DOWNLOAD_URL = "https://github.com/gabimarulevide13-ctrl/gardepharma-ci/releases/download/v1.0.0/GardePharmaCI.apk";
+  const APK_DOWNLOAD_URL = "https://github.com/gabimarulevide13-ctrl/gardepharma-ci/releases/latest/download/GardePharmaCI.apk";
 
   const triggerApkDownload = () => {
     const alreadyDownloaded = localStorage.getItem("gardepharma_already_downloaded") === "true";
