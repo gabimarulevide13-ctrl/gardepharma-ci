@@ -71,15 +71,8 @@ export default function App() {
   const [downloadStep, setDownloadStep] = useState<"idle" | "preparing" | "scanning" | "downloading" | "completed">("idle");
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  // Download counter state
-  const [downloadCount, setDownloadCount] = useState<number>(() => {
-    const stored = localStorage.getItem("gardepharma_download_count");
-    if (stored) {
-      const parsed = parseInt(stored, 10);
-      if (!isNaN(parsed)) return parsed;
-    }
-    return 0; // Commencer à 0 pour ne pas inventer de données
-  });
+  // Global download counter (GitHub Releases API — real download count, shared across all users)
+  const [downloadCount, setDownloadCount] = useState<number>(0);
 
   // Latest release info fetched from GitHub (version number + changelog)
   const [releaseInfo, setReleaseInfo] = useState<{ version: string; notes: string } | null>(null);
@@ -148,6 +141,7 @@ export default function App() {
             }
             return { version: remoteVersion, notes: data.body || "" };
           });
+          extractGitHubDownloadCount(data);
         }
       } catch (e) {
         // Echec silencieux : le site fonctionne normalement même sans cette info
@@ -159,6 +153,30 @@ export default function App() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Extract download count from GitHub release data (shared across all users)
+  const extractGitHubDownloadCount = useCallback((data: any) => {
+    if (data && data.tag_name && data.assets) {
+      const apkAsset = data.assets.find((a: any) => a.name.endsWith(".apk"));
+      if (apkAsset && typeof apkAsset.download_count === "number") {
+        setDownloadCount(apkAsset.download_count);
+      }
+    }
+  }, []);
+
+  // Fetch the global download count from GitHub on page load
+  useEffect(() => {
+    const fetchGlobalCount = async () => {
+      try {
+        const res = await fetch("https://api.github.com/repos/gabimarulevide13-ctrl/gardepharma-ci/releases/latest");
+        const data = await res.json();
+        extractGitHubDownloadCount(data);
+      } catch (e) {
+        // Echec silencieux : le compteur reste à 0
+      }
+    };
+    fetchGlobalCount();
+  }, [extractGitHubDownloadCount]);
 
   // Theme application logic
   useEffect(() => {
@@ -192,15 +210,6 @@ export default function App() {
   const APK_DOWNLOAD_URL = "https://github.com/gabimarulevide13-ctrl/gardepharma-ci/releases/latest/download/GardePharmaCI.apk";
 
   const triggerApkDownload = () => {
-    const alreadyDownloaded = localStorage.getItem("gardepharma_already_downloaded") === "true";
-
-    if (!alreadyDownloaded) {
-      const newCount = downloadCount + 1;
-      setDownloadCount(newCount);
-      localStorage.setItem("gardepharma_download_count", newCount.toString());
-      localStorage.setItem("gardepharma_already_downloaded", "true");
-    }
-
     try {
       const link = document.createElement("a");
       link.href = APK_DOWNLOAD_URL;
@@ -214,6 +223,21 @@ export default function App() {
 
     setDownloadStep("completed");
     setDownloadProgress(100);
+
+    // Optimistic local increment for instant visual feedback
+    setDownloadCount(prev => prev + 1);
+
+    // Refresh the real global counter from GitHub
+    const refreshGitHubCounter = async () => {
+      try {
+        const res = await fetch("https://api.github.com/repos/gabimarulevide13-ctrl/gardepharma-ci/releases/latest");
+        const data = await res.json();
+        extractGitHubDownloadCount(data);
+      } catch (e) {
+        // Echec silencieux : on garde l'incrément local
+      }
+    };
+    refreshGitHubCounter();
   };
 
   // Helper to scroll to the download section and initiate the APK download process automatically
@@ -540,9 +564,9 @@ export default function App() {
                   <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Stockage Local / Privé</div>
                 </div>
                 <div className="text-center lg:text-left">
-                  <div className="font-display font-extrabold text-2xl text-emerald-500 dark:text-emerald-400 font-mono">
-                    {downloadCount.toLocaleString("fr-FR")}+
-                  </div>
+                   <div className="font-display font-extrabold text-2xl text-emerald-500 dark:text-emerald-400 font-mono">
+                      {downloadCount.toLocaleString("fr-FR")}+
+                   </div>
                   <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">Téléchargements</div>
                 </div>
               </div>
@@ -1110,7 +1134,7 @@ export default function App() {
           {/* Live Download Counter Badge */}
           <div className="mt-4 inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-4 py-2 rounded-2xl border border-emerald-500/20 font-bold text-xs shadow-xs">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>{downloadCount.toLocaleString("fr-FR")} téléchargements enregistrés</span>
+            <span>{(downloadCount).toLocaleString("fr-FR")} téléchargements enregistrés</span>
           </div>
 
           {releaseInfo && (
