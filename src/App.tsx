@@ -18,6 +18,7 @@ import {
   Moon,
   Sun,
   AlertCircle,
+  AlertTriangle,
   Mail,
   Plus,
   Trash2,
@@ -73,6 +74,9 @@ export default function App() {
 
   // Global download counter (GitHub Releases API — real download count, shared across all users)
   const [downloadCount, setDownloadCount] = useState<number>(0);
+
+  // Play Protect guide modal state
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
   // Latest release info fetched from GitHub (version number + changelog)
   const [releaseInfo, setReleaseInfo] = useState<{ version: string; notes: string } | null>(null);
@@ -400,7 +404,7 @@ export default function App() {
             </div>
 
             <button
-              onClick={initiateApkDownload}
+              onClick={() => setShowGuideModal(true)}
               className="px-5 py-2.5 rounded-xl font-medium text-sm bg-slate-900 text-white hover:bg-slate-800 dark:bg-emerald-500 dark:text-slate-950 dark:hover:bg-emerald-400 shadow-xs transition-all flex items-center gap-2 transform active:scale-98 cursor-pointer"
             >
               <Download className="w-4 h-4" /> Télécharger l'APK
@@ -540,7 +544,7 @@ export default function App() {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-10">
                 <button
-                  onClick={initiateApkDownload}
+                  onClick={() => setShowGuideModal(true)}
                   className="w-full sm:w-auto px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-base rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-xl transition-all flex items-center justify-center gap-3 transform active:scale-98 cursor-pointer"
                 >
                   <Download className="w-5 h-5" /> Télécharger l'APK Gratuit
@@ -1164,7 +1168,7 @@ export default function App() {
             {downloadStep === "idle" && (
               <div className="space-y-4">
                 <button
-                  onClick={triggerApkDownload}
+                  onClick={() => setShowGuideModal(true)}
                   className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-base rounded-xl transition-all shadow-md flex items-center justify-center gap-2 transform active:scale-98 cursor-pointer"
                 >
                   <Download className="w-5 h-5" /> Obtenir l'APK (GardePharmaCI.apk)
@@ -1453,6 +1457,93 @@ export default function App() {
         )}
       </AnimatePresence>
 
+
+      {/* PLAY PROTECT GUIDE MODAL */}
+      <AnimatePresence>
+        {showGuideModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          >
+            {/* Overlay */}
+            <div
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+              onClick={() => setShowGuideModal(false)}
+            />
+
+            {/* Modal content */}
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full max-h-[90vh] overflow-y-auto"
+            >
+              <div className="p-6">
+                {/* Close button */}
+                <button
+                  onClick={() => setShowGuideModal(false)}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                {/* Icon + Title */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-display font-extrabold text-lg text-slate-900 dark:text-white">
+                    Installation en cours...
+                  </h3>
+                </div>
+
+                <p className="text-xs text-slate-600 dark:text-slate-400 mb-4">
+                  Si une alerte de sécurité <strong>Google Play Protect</strong> apparaît lors de l'installation, c'est normal. Voici comment procéder :
+                </p>
+
+                {/* IMAGE */}
+                <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden mb-4 bg-slate-50 dark:bg-slate-950">
+                  <img
+                    src="/play_protect_guide.png"
+                    alt="Guide Play Protect"
+                    className="w-full h-auto"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+
+                {/* Steps */}
+                <div className="space-y-2 mb-6">
+                  <div className="flex items-start gap-3">
+                    <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">1</span>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">Ouvrez le fichier <strong>GardePharmaCI.apk</strong> sur votre téléphone</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">2</span>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">Si Play Protect affiche une alerte, appuyez sur <strong>"Installer quand même"</strong></p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <span className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-[10px] font-bold shrink-0">3</span>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">Appuyez sur <strong>"Installer"</strong> pour finaliser</p>
+                  </div>
+                </div>
+
+                {/* Confirm button */}
+                <button
+                  onClick={() => { setShowGuideModal(false); triggerApkDownload(); }}
+                  className="w-full py-3 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-sm rounded-xl transition-all shadow-md flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" /> Confirmer le téléchargement
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
