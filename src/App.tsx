@@ -83,6 +83,7 @@ export default function App() {
 
   // Latest release info fetched from GitHub (version number + changelog)
   const [releaseInfo, setReleaseInfo] = useState<{ version: string; notes: string } | null>(null);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
 
   // Theme state: "light" | "dark" | "system"
   const [theme, setTheme] = useState<"light" | "dark" | "system">("light");
@@ -133,20 +134,30 @@ export default function App() {
   }, []);
 
   // Fetch the latest release version + changelog from GitHub on page load
+  // and poll every 5 minutes for updates
   useEffect(() => {
-    fetch("https://api.github.com/repos/gabimarulevide13-ctrl/gardepharma-ci/releases/latest")
-      .then((res) => res.json())
-      .then((data) => {
+    const checkForUpdates = async () => {
+      try {
+        const res = await fetch("https://api.github.com/repos/gabimarulevide13-ctrl/gardepharma-ci/releases/latest");
+        const data = await res.json();
         if (data && data.tag_name) {
-          setReleaseInfo({
-            version: data.tag_name.replace(/^v/, ""),
-            notes: data.body || ""
+          const remoteVersion = data.tag_name.replace(/^v/, "");
+          setReleaseInfo((prev) => {
+            if (prev && prev.version !== remoteVersion) {
+              setUpdateAvailable(true);
+            }
+            return { version: remoteVersion, notes: data.body || "" };
           });
         }
-      })
-      .catch(() => {
+      } catch (e) {
         // Echec silencieux : le site fonctionne normalement même sans cette info
-      });
+      }
+    };
+
+    checkForUpdates();
+    const interval = setInterval(checkForUpdates, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Theme application logic
@@ -391,6 +402,24 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* Update available banner */}
+      <AnimatePresence>
+        {updateAvailable && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-3 cursor-pointer"
+            onClick={() => window.location.reload()}
+          >
+            <CheckCircle2 className="w-5 h-5" />
+            <span className="font-semibold text-sm">
+              Nouvelle version disponible ! Rechargez la page.
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Mobile Navigation Menu */}
       <AnimatePresence>
