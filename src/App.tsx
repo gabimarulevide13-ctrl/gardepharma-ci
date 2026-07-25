@@ -20,6 +20,7 @@ import {
   AlertCircle,
   AlertTriangle,
   Mail,
+  Play,
   Plus,
   Trash2,
   ShoppingCart,
@@ -181,6 +182,18 @@ export default function App() {
     };
     fetchGlobalCount();
   }, [extractGitHubDownloadCount]);
+
+  // Auto-scroll to download section when download completes
+  useEffect(() => {
+    if (downloadStep === "completed") {
+      const el = document.getElementById("telechargement");
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth" });
+        }, 500);
+      }
+    }
+  }, [downloadStep]);
 
   // Theme application logic
   useEffect(() => {
@@ -1168,8 +1181,12 @@ export default function App() {
             {downloadStep === "idle" && (
               <div className="space-y-4">
                 <button
-                  onClick={() => setShowGuideModal(true)}
-                  className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-base rounded-xl transition-all shadow-md flex items-center justify-center gap-2 transform active:scale-98 cursor-pointer"
+                   onClick={() => {
+                     setShowGuideModal(true);
+                     const el = document.getElementById("telechargement");
+                     if (el) el.scrollIntoView({ behavior: "smooth" });
+                   }}
+                   className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-base rounded-xl transition-all shadow-md flex items-center justify-center gap-2 transform active:scale-98 cursor-pointer"
                 >
                   <Download className="w-5 h-5" /> Obtenir l'APK (GardePharmaCI.apk)
                 </button>
@@ -1190,6 +1207,21 @@ export default function App() {
                 >
                   Télécharger à nouveau
                 </button>
+
+                <div className="mt-3 mb-2">
+                  <p className="text-[10px] text-slate-400 text-center mb-2">
+                    Si vous avez des difficultés à installer l'application, regardez ce tutoriel :
+                  </p>
+                  <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                    <iframe
+                      src="https://www.youtube.com/embed/hk9jGALS4Q0"
+                      title="Guide d'installation GardePharma CI"
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
               </div>
             )}
 
