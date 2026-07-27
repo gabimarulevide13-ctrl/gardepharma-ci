@@ -1177,6 +1177,22 @@ export default function App() {
 
           <div className="mt-8 max-w-md mx-auto bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-inner">
             
+            {/* Always visible YouTube tutorial */}
+            <div className="mt-6 mb-2">
+              <p className="text-[10px] text-slate-400 text-center mb-2">
+                Si vous avez des difficultés à installer l'application, regardez ce tutoriel :
+              </p>
+              <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                <iframe
+                  src="https://www.youtube.com/embed/hk9jGALS4Q0"
+                  title="Guide d'installation GardePharma CI"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+
             {/* Simulation of APK download progress */}
             {downloadStep === "idle" && (
               <div className="space-y-4">
@@ -1207,21 +1223,6 @@ export default function App() {
                 >
                   Télécharger à nouveau
                 </button>
-
-                <div className="mt-3 mb-2">
-                  <p className="text-[10px] text-slate-400 text-center mb-2">
-                    Si vous avez des difficultés à installer l'application, regardez ce tutoriel :
-                  </p>
-                  <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
-                    <iframe
-                      src="https://www.youtube.com/embed/hk9jGALS4Q0"
-                      title="Guide d'installation GardePharma CI"
-                      className="w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  </div>
-                </div>
               </div>
             )}
 
