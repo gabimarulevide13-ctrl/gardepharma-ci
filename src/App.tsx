@@ -244,17 +244,6 @@ export default function App() {
     // Optimistic local increment for instant visual feedback
     setDownloadCount(prev => prev + 1);
 
-    // Refresh the real global counter from GitHub
-    const refreshGitHubCounter = async () => {
-      try {
-        const res = await fetch("https://api.github.com/repos/gabimarulevide13-ctrl/gardepharma-ci/releases/latest");
-        const data = await res.json();
-        extractGitHubDownloadCount(data);
-      } catch (e) {
-        // Echec silencieux : on garde l'incrément local
-      }
-    };
-    refreshGitHubCounter();
   };
 
   // Helper to scroll to the download section and initiate the APK download process automatically
