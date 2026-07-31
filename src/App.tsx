@@ -183,6 +183,36 @@ export default function App() {
     fetchGlobalCount();
   }, [extractGitHubDownloadCount]);
 
+  // WebView link handler: keep all links within the WebView, never redirect to external browser
+  useEffect(() => {
+    const handleLinkClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest("a");
+      if (!anchor) return;
+
+      const href = anchor.getAttribute("href");
+      if (!href || href === "#" || href.startsWith("#")) return;
+
+      const lowerHref = href.toLowerCase();
+
+      // Remove target=_blank to keep everything in the WebView
+      anchor.removeAttribute("target");
+      anchor.removeAttribute("rel");
+
+      // Block intent:// and market:// from opening external browser
+      if (lowerHref.startsWith("intent://") || lowerHref.startsWith("market://")) {
+        e.preventDefault();
+        return;
+      }
+
+      // tel: and mailto: are allowed - they open system apps from WebView
+      // https:// and http:// stay in the WebView
+    };
+
+    document.addEventListener("click", handleLinkClick);
+    return () => document.removeEventListener("click", handleLinkClick);
+  }, []);
+
   // Auto-scroll to download section when download completes
   useEffect(() => {
     if (downloadStep === "completed") {
