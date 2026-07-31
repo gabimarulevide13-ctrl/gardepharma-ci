@@ -1184,7 +1184,7 @@ export default function App() {
               </p>
               <div className="relative w-full aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
                 <iframe
-                  src="https://www.youtube.com/embed/hk9jGALS4Q0"
+                  src="https://www.youtube.com/embed/XJiYqqefpsM"
                   title="Guide d'installation GardePharma CI"
                   className="w-full h-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
