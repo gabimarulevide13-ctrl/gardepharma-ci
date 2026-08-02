@@ -241,8 +241,6 @@ export default function App() {
     setDownloadStep("completed");
     setDownloadProgress(100);
 
-    // Optimistic local increment for instant visual feedback
-    setDownloadCount(prev => prev + 1);
 
   };
 
